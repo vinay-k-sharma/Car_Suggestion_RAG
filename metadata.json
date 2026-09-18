@@ -1,0 +1,6 @@
+{
+  "name": "CarMatch AI",
+  "description": "2026 Vehicle recommendation system powered by a 15-layer modular prompt architecture, deterministic match scoring, and attached inventory assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

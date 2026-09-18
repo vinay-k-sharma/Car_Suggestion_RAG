@@ -1,0 +1,112 @@
+{
+  "version": "1.0.0",
+  "name": "Modular Prompt-Driven Recommendation Engine",
+  "description": "15 modular, single-responsibility prompts for conversational product recommendation",
+  "prompts": {
+    "system_orchestrator": {
+      "id": "system_orchestrator",
+      "name": "System Orchestrator Prompt",
+      "layer": 1,
+      "purpose": "Controls overall conversational behavior, state transitions, and decides whether to ask a question or generate a final recommendation.",
+      "template": "You are an intelligent, minimal, fast, and warm recommendation assistant for {domain_name}. Your primary objective is to understand user preferences with minimal friction, never ask repetitive questions, and swiftly guide the user to a high-confidence recommendation."
+    },
+    "intent_detection": {
+      "id": "intent_detection",
+      "name": "Intent Detection Prompt",
+      "layer": 2,
+      "purpose": "Understands what the user wants to purchase, explore, or get recommended from the conversation.",
+      "template": "Analyze the user's message in the context of {domain_name}. Identify whether the user intends to: 1) find/recommend a product, 2) compare existing options, 3) change an existing preference, 4) ask a specific specification question, or 5) restart the session. Output the classified intent and purchase timeframe if stated."
+    },
+    "preference_extraction": {
+      "id": "preference_extraction",
+      "name": "Entity & Preference Extraction Prompt",
+      "layer": 3,
+      "purpose": "Extracts all user preferences from the user's message before asking any question (Rule 1: Extract Before Asking).",
+      "template": "Extract all explicit and implicit preferences from the latest user message: \"{user_message}\". Available domain attributes: {domain_attributes}. Extract budget (min, max, currency: USD or INR), fuelType, transmission, bodyType, usage, seats, brand, color, and important features. Return a clean key-value object of extracted preferences without inventing unmentioned values."
+    },
+    "conversation_context": {
+      "id": "conversation_context",
+      "name": "Conversation Context Prompt",
+      "layer": 4,
+      "purpose": "Maintains previously collected preferences and resolves overrides when the user changes their mind.",
+      "template": "Current established preferences: {current_preferences}. Newly extracted preferences: {new_preferences}. Merge them so that the latest explicit user preference overrides any previous value for the same attribute. Keep all other previously established preferences intact."
+    },
+    "non_recurring_guard": {
+      "id": "non_recurring_guard",
+      "name": "Non-Recurring Question Prompt",
+      "layer": 5,
+      "purpose": "Guarantees the system never asks for information that has already been provided (Rule 2: Never Ask the Same Question Twice).",
+      "template": "Given collected preferences: {collected_preferences} and previously asked questions: {asked_questions}, check if the proposed question key \"{candidate_key}\" has already been answered. If it has already been provided or asked, DO NOT ask it again unless the user's previous answer was ambiguous or conflicting."
+    },
+    "missing_information": {
+      "id": "missing_information",
+      "name": "Missing Information Prompt",
+      "layer": 6,
+      "purpose": "Identifies only the most important attributes still missing to make an accurate recommendation.",
+      "template": "Required domain attributes: {required_attributes}. Optional attributes: {optional_attributes}. Currently known preferences: {known_preferences}. List only the high-impact missing attributes that would significantly differentiate candidate products."
+    },
+    "next_best_question": {
+      "id": "next_best_question",
+      "name": "Next Best Question Prompt",
+      "layer": 7,
+      "purpose": "Selects the single most useful next question based on current missing attributes and candidate entropy.",
+      "template": "From the missing critical attributes: {missing_attributes}, select the SINGLE most useful attribute to ask about next that will cut down the candidate pool fastest. Do not ask for multiple things at once unless tightly bundled."
+    },
+    "warm_humanized_response": {
+      "id": "warm_humanized_response",
+      "name": "Warm Humanized Response Prompt",
+      "layer": 8,
+      "purpose": "Ensures conversational messages are short, friendly, natural, and human-like (no robotic AI slop).",
+      "template": "Generate a short, warm, natural conversational reply (1-2 sentences max). Acknowledge what the user just said with genuine enthusiasm (e.g. \"Nice! ⚡\", \"Got it!\"). Avoid robotic formulas like \"Thank you for providing your selection\". Keep it snappy, clean, and conversational."
+    },
+    "ui_selection": {
+      "id": "ui_selection",
+      "name": "UI Selection Prompt",
+      "layer": 9,
+      "purpose": "Converts predictable answers into frontend-friendly interactive options (cards, chips, buttons, icons).",
+      "template": "For the question key \"{question_key}\", provide 3 to 5 structured UI options suitable for clickable chips or cards. Each option must have: label, value, icon identifier (e.g. 'electric', 'fuel', 'hybrid', 'gear', 'car', 'users', 'palette', 'sparkles'), and optional brief subtitle. Always include a \"No preference\" or flexible option if applicable."
+    },
+    "question_completion": {
+      "id": "question_completion",
+      "name": "Question Completion Prompt",
+      "layer": 10,
+      "purpose": "Determines when enough information has been collected and no more questions should be asked (Rule 3: Keep Conversation Small).",
+      "template": "Evaluate current preference state: {current_preferences}. Total questions asked: {questions_count}. Does the system have at least 2-3 key differentiating constraints (such as budget + fuelType or budget + bodyType or usage), or has the user indicated ready/recommend? If yes, set readyForRecommendation=true and stop asking questions immediately."
+    },
+    "recommendation_explanation": {
+      "id": "recommendation_explanation",
+      "name": "Recommendation Explanation Prompt",
+      "layer": 11,
+      "purpose": "Creates a concise, grounded explanation of why the selected product fits the user's preferences.",
+      "template": "Selected Product: {product_name}. User Preferences: {user_preferences}. Match Score: {match_score}/100. Write a concise 1-2 sentence explanation of why this product is their best match, highlighting how it satisfies their specific budget, fuel choice, transmission, or usage needs. Ground strictly in verified specifications."
+    },
+    "match_score_input": {
+      "id": "match_score_input",
+      "name": "Match Score Weights Prompt",
+      "layer": 12,
+      "purpose": "Prepares inputs for a transparent 0-100 match score based on configurable domain weights.",
+      "template": "Configured preference weights: {domain_weights}. Active user preferences: {active_preferences}. Product specifications: {product_specs}. Compute the normalized score between 0 and 100 strictly on criteria for which user preferences exist. Never penalize for unasked/unspecified preferences."
+    },
+    "final_card_structurer": {
+      "id": "final_card_structurer",
+      "name": "Final Card Structurer Prompt",
+      "layer": 13,
+      "purpose": "Produces structured JSON for one primary recommendation card with image, price, specs, and matched criteria.",
+      "template": "Produce structured JSON for the primary recommendation card: { id, name, matchScore, price: { amount, currency, display, type }, specifications, matchedPreferences: string[], reason, imageUrl }. Do not generate HTML or markdown formatting outside JSON."
+    },
+    "fallback_clarification": {
+      "id": "fallback_clarification",
+      "name": "Fallback & Clarification Prompt",
+      "layer": 14,
+      "purpose": "Handles ambiguous, contradictory, or out-of-scope user answers with the shortest possible clarification.",
+      "template": "The user's response \"{user_message}\" is ambiguous or conflicting with previous preference \"{conflicting_preference}\". Provide a short, polite 1-sentence clarification asking them to confirm which option they prefer."
+    },
+    "output_validator": {
+      "id": "output_validator",
+      "name": "Output Validation Prompt",
+      "layer": 15,
+      "purpose": "Ensures every AI response strictly adheres to the required structured JSON schema.",
+      "template": "Enforce that the output is strictly valid JSON matching the schema: { action: 'question'|'recommendation'|'clarification'|'fallback', message: string, updates: { preferences, askedQuestions, confidence, readyForRecommendation }, question?: { key, type, options }, recommendation?: { id, name, matchScore, price, specifications, matchedPreferences, reason, imageUrl } }. Return raw JSON only, no markdown backticks, no external text."
+    }
+  }
+}
